@@ -1,42 +1,85 @@
-### 流程图
-![avatar](/resources/react-pure-component.png)
+### 摘要
 
-### checkShouldComponentUpdate
+- PureComponent 原型上会有 isPureReactComponent = true 属性
+- PureComponent 会进行对 props, state 进行 **sCU** 优化 (浅比较)
+
+### 定义
+
+```js
+
+/**
+ * Base class helpers for the updating state of a component.
+ */
+function Component(props, context, updater) {
+  this.props = props;
+  ...
+}
+
+Component.prototype.isReactComponent = {};
+
+// this.setState(...)
+Component.prototype.setState = function(partialState, callback) {
+  ...
+  this.updater.enqueueSetState(this, partialState, callback, 'setState');
+}
+
+// this.forceUpdate(...)
+Component.prototype.forceUpdate = function(callback) {
+  ...
+}
+
+/**
+ * Convenience component with default shallow equality check for sCU.
+ */
+function PureComponent(props, context, updater) {
+  this.props = props;
+  ...
+}
+
+var pureComponentPrototype = PureComponent.prototype;
+...
+
+// PureComponent 原型会存在 Component 原型的属性
+_assign(pureComponentPrototype, Component.prototype);
+
+// PureComponent 原型上会有 isPureReactComponent 属性
+pureComponentPrototype.isPureReactComponent = true;
+
+
+```
+
+### 检查是否需要更新
 
 ```js
 function checkShouldComponentUpdate(workInProgress, ctor, oldProps, newProps, oldState, newState, nextContext) {
   var instance = workInProgress.stateNode;
 
+  // 如果实例定义 shouldComponentUpdate 生命周期方法,则调用 shouldComponentUpdate
   if (typeof instance.shouldComponentUpdate === 'function') {
-    {
-      if ( workInProgress.mode & StrictMode) {
-        // Invoke the function an extra time to help detect side-effects.
-        instance.shouldComponentUpdate(newProps, newState, nextContext);
-      }
-    }
-
-    startPhaseTimer(workInProgress, 'shouldComponentUpdate');
+    ...
     var shouldUpdate = instance.shouldComponentUpdate(newProps, newState, nextContext);
-    stopPhaseTimer();
 
     {
+      // 只会检查 shouldComponentUpdate 有无返回值, 并不会检查返回值的类型?
       if (shouldUpdate === undefined) {
-        error('%s.shouldComponentUpdate(): Returned undefined instead of a ' + 'boolean value. Make sure to return true or false.', getComponentName(ctor) || 'Component');
+        // error
       }
     }
 
     return shouldUpdate;
   }
 
+  // 如果原型上有 isPureReactComponent 属性, 则进行 ShallowEqual 比较 props, state
   if (ctor.prototype && ctor.prototype.isPureReactComponent) {
     return !shallowEqual(oldProps, newProps) || !shallowEqual(oldState, newState);
   }
 
+  // 实例没有定义 shouldComponentUpdate 方法, 实例的原型上也没有 isPureReactComponent 属性, 则默认返回 true
   return true;
 }
 ```
 
-### Shallow Compare
+### 浅比较
 
 ```js
 /**
