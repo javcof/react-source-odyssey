@@ -1,0 +1,17 @@
+{
+  "name": "react-source-odyssey",
+  "version": "1.0.0",
+  "repository": "https://github.com/javcof/react-source-odyssey.git",
+  "author": "Jerry Zhang <javcof@live.cn>",
+  "license": "MIT",
+  "devDependencies": {
+    "@commitlint/cli": "^8.2.0",
+    "@commitlint/config-conventional": "^8.2.0",
+    "husky": "^3.0.9"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }  
+  }
+}
