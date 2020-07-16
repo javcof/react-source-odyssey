@@ -4,3 +4,4 @@
 * [dangerouslySetInnerHTML](./dangerouslySetInnerHTML.md)
 * [defaultProps](./defaultProps.md)
 * [reactElement](reactElement.md)
+* [refs](refs.md)
